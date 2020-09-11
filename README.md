@@ -5,7 +5,7 @@ The necessary files to calculate the coherence of each EEG data file are under t
 
 Under the folders controls and patients are matlab scripts to compute and save coherence and power spectral density of the control and patient data sets. There are separate matlab scripts to compute different chunks of these data files for faster analysis on Compute Canada. Each script has the same format: for each data file in the list, extract all of the conditions using ext_all_cond, and for each of these conditions, calculate the power spectral density and coherence and save all of the results in a cell array.
 
-## SWP Analysis
+## Small World Propensity Analysis
 ### Patients: Resting vs Music vs Faces
 
 
