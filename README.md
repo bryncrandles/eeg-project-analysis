@@ -16,7 +16,7 @@
 * Input concatenated cell arrays from part 1 into function SWP_results.
 - Function SWP_results calculates small world propensity (and its components clustering and path length) for a specificy frequency band and desired average degree. Uses coh_matrix function and small_world_propensity function from the SWP toolbox written by Eric Bridgeford (Reference: Muldoon, Bridgeford, and Bassett (2015) "Small-World Propensity in Weighted, Real-World Networks" http://arxiv.org/abs/1505.02194) (requires Bioinformatics toolbox).
 * Spatial (individual node) results: use function node_clust_path to return the clustering matrix from SWP toolbox (clustering_coef_matrix function) and the average path length vector from the graphallshortestpaths function (Bioinformatics toolbox) for each participant.
-* Use swp_anova for mixed anova with repeated measures
+* Use anova.R for mixed anova with repeated measures; anova_permtest.R to confirm results
 
 
 
