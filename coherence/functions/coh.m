@@ -1,4 +1,4 @@
-function COH = coh(data, srate, brkpnts)
+function COH = coh(data, srate, brkpnts, overlap)
 
 % DESCRIPTION OF FUNCTION
 
@@ -15,6 +15,8 @@ function COH = coh(data, srate, brkpnts)
 % breakpoints within the data, and the last entry should be the total
 % number of points in the data.
 
+% overlap: an integer indicating the overlap desired for windowing.
+
 % Outputs:
 
 % COH: is a (numchannels) x (numchannels) x (srate) 3D matrix where the vector (i, j, :) is the coherence between the i^th and j^th channels.
@@ -28,7 +30,7 @@ numchannels = size(data, 1);
 w = hann(srate)';
 
 % overlap
-overlap = floor(srate/2);
+%overlap = floor(srate/2);
 
 % size of brkpnts vector
 s = size(brkpnts, 2);
