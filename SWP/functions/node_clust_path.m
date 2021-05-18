@@ -1,4 +1,4 @@
-function Node_Results = node_clust_path(coh_psd, freq, avg_deg, threshold_vector, save_name)
+function Node_Results = node_clust_path(coh_psd, num_cond, cond_names, freq, avg_deg, save_name)
 
 % DESCRIPTION %
 % inputs a cell array of coherence data for a number of eeg files, and
@@ -15,47 +15,56 @@ function Node_Results = node_clust_path(coh_psd, freq, avg_deg, threshold_vector
 
 % Inputs:
 
-% coh_psd is a (# number of data files x 2) cell array, where the first 
-% column is the name of the data file and the second
-% column is a (# of conditions x 3) cell array. Within this, the first
-% column is the name of condition, second is the coherence (num channels x 
-% num channels x sampling rate) matrix , and the third
-% is the power spectral density [PSD not used in this code]. 
+%   coh_psd (cell): a (# number of data files x 2) cell array, where the first 
+%   column is the name of the data file and the second
+%   column is a (# of conditions x 3) cell array. Within this, the first
+%   column is the name of condition, second is the coherence (num channels x 
+%   num channels x sampling rate) matrix , and the third
+%   is the power spectral density [PSD not used in this code]. 
 
-% freq is a vector specifying frequency band. (Used in this analysis: Delta 1:3, Theta 4:7, Alpha
-% 8:12, Low alpha 8:10, High alpha 10:12, Beta 13:30).
+%   num_cond (int): number of tasks 
 
-% avg_deg is an integer - the desired average degree of the graph resulting
-% from the adjacency matrix.
+%   cond_names (string array): array containing names of 
 
-% threshold_vector is a vector of thresholds to test that will result in the
-% desired average degree.
+%   freq (vector): is a vector specifying frequency band. (Used in this analysis: Delta 1:3, Theta 4:7, Alpha
+%   8:12, Low alpha 8:10, High alpha 10:12, Beta 13:30).
+
+%   avg_deg(int): - the desired average degree of the graph resulting
+%   from the adjacency matrix.
+
+%   threshold_vector (vector):  vector of thresholds to test that will result in the
+%   desired average degree.
 
 % Outputs:
-% Node_Results is a 1x1 structure containing the fields Threshold, Clust,
+% Node_Results (struct): 1x1 structure containing the fields Threshold, Clust,
 % and Path, each which are (# of eeg files) x 4 cell arrays ( 1
 % column for file name, 3 columns for resting, music and faces conditions).
 
 % FUNCTION 
 
-% variables
-T = threshold_vector;
-
 % initialize cell arrays
-Clust = cell(length(coh_psd) + 1 , 4);
-Path = cell(length(coh_psd) + 1, 4);
-Threshold = cell(length(coh_psd) + 1, 4);
+Clust = cell(length(coh_psd) + 1 , num_cond + 1);
+Path = cell(length(coh_psd) + 1, num_cond + 1);
+Threshold = cell(length(coh_psd) + 1, num_cond + 1);
 
 % name columns 
-Clust{1, 2} = "resting";
-Clust{1, 3} = "music";
-Clust{1, 4} = "faces";
-Path{1, 2} = "resting";
-Path{1, 3} = "music";
-Path{1, 4} = "faces";
-Threshold{1, 2} = "resting";
-Threshold{1, 3} = "music";
-Threshold{1, 4} = "faces";
+% names of conditions
+
+% Clust{1, 2} = "resting";
+% Clust{1, 3} = "music";
+% Clust{1, 4} = "faces";
+% Path{1, 2} = "resting";
+% Path{1, 3} = "music";
+% Path{1, 4} = "faces";
+% Threshold{1, 2} = "resting";
+% Threshold{1, 3} = "music";
+% Threshold{1, 4} = "faces";
+
+for i = 1:length(cond_names)
+    Clust{1, i + 1} = cond_names(i);
+    Path{1, i + 1} = cond_names(i);
+    Threshold{1, i + 1} = cond_names(i);
+end
 
 % input file names 
 Clust(2:size(Clust, 1), 1) = coh_psd(:, 1);
@@ -64,23 +73,15 @@ Threshold(2:size(Threshold, 1), 1) = coh_psd(:, 1);
 
 % loop to calculate individual node clustering coefficients and path
 % lengths
-for i = 1:length(coh_psd)
+for i = 1%:length(coh_psd)
     file_data = coh_psd{i, 2};
-    for j = 1:3
-        for k = 1:length(T)
-            A = coh_matrix(file_data{j, 2}, freq, T(k));
-            avg_deg_coh = round(mean(degree(graph(A))));
-            if avg_deg_coh == avg_deg
-               threshold_value = T(k);
-               break
-            end
-        end
-            Threshold{i + 1, j + 1} = threshold_value;
-            C = clustering_coef_matrix(A, 'bin');
-            Clust{i + 1, j + 1} = C;
-            M = sparse(A);
-            D = graphallshortestpaths(M);
-            Path{i + 1, j + 1} = D;
+    for j = 1%:num_cond
+        [A, threshold_value] = coh_matrix(file_data{j, 2}, freq, avg_deg);
+        C = clustering_coef_matrix(A, 'bin');
+        Clust{i + 1, j + 1} = C;
+        L_i = node_path_lengths(A);
+        Path{i + 1, j + 1} = L_i;
+        Threshold{i + 1, j + 1} = threshold_value;
     end
 end
 
@@ -91,7 +92,7 @@ Path = {Path};
 Node_Results = struct('Threshold', Threshold, 'Clust', Clust, 'Path', Path);
 
 % save the structure 
-save_name = [save_name '.mat'];
+save_name = [save_name '_' date '.mat'];
 save(save_name, 'Node_Results', '-v7.3');
 
 end

@@ -10,22 +10,22 @@ load('coh_psd.mat', 'coh_psd')
 
 % set variables
 avg_deg = 10;
-threshold = 0:0.01:18;
-delta = 1:3;
-theta = 4:7;
-alpha = 8:12;
-low_alpha = 8:10;
-high_alpha = 10:12;
-beta = 13:30;
 num_cond = 3;
+cond_names = ["resting" "music" "faces"];
+delta = 2:4;
+theta = 5:8;
+alpha = 9:13;
+low_alpha = 9:11;
+high_alpha = 11:13;
+beta = 14:31;
 
 % calculate SWP for each frequency band (functions automatically save
 % structures)
-SWP_results(coh_psd, num_cond, delta, avg_deg, threshold, 'Patients_Delta_SWP');
-SWP_results(coh_psd, num_cond, theta, avg_deg, threshold, 'Patients_Theta_SWP');
-SWP_results(coh_psd, num_cond, alpha, avg_deg, threshold, 'Patients_Alpha_SWP');
-SWP_results(coh_psd, num_cond, low_alpha, avg_deg, threshold, 'Patients_Low_Alpha_SWP');
-SWP_results(coh_psd, num_cond, high_alpha, avg_deg, threshold, 'Patients_High_Alpha_SWP');
-SWP_results(coh_psd, num_cond, beta, avg_deg, threshold, 'Patients_Beta_SWP');
+SWP_results(coh_psd, num_cond, cond_names, delta, avg_deg, 'Patients_Delta_SWP');
+SWP_results(coh_psd, num_cond, cond_names, theta, avg_deg, 'Patients_Theta_SWP');
+SWP_results(coh_psd, num_cond, cond_names, alpha, avg_deg, 'Patients_Alpha_SWP');
+SWP_results(coh_psd, num_cond, cond_names, low_alpha, avg_deg, 'Patients_Low_Alpha_SWP');
+SWP_results(coh_psd, num_cond, cond_names, high_alpha, avg_deg, 'Patients_High_Alpha_SWP');
+SWP_results(coh_psd, num_cond, cond_names, beta, avg_deg, 'Patients_Beta_SWP');
 
 exit

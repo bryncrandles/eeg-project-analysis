@@ -1,4 +1,4 @@
-function SWP_results = SWP_results(coh_array, num_cond, freq, avg_deg, threshold, save_name)
+function results = SWP_results(coh_array, num_cond, cond_names, freq, avg_deg, save_name)
 
 % DESCRIPTION
 
@@ -18,25 +18,25 @@ function SWP_results = SWP_results(coh_array, num_cond, freq, avg_deg, threshold
 % num channels x sampling rate) matrix , and the third
 % is the power spectral density [PSD not used in this code]. 
 
-% num_cond is an integer from 1 to 13 (max # of conditions produced by
+% num_cond (int) - 1 to 13 (max # of conditions produced by
 % function ext_all_cond) specifying the conditions for which to compute
 % SWP. (Recall order of conditions: resting, music, faces, eopen, eclosed,
 % hapm, joym, sadm, fearm, hapy, fear, neut, angy).
 
-% freq is a vector specifying frequency band. (Used in this analysis: Delta 1:3, Theta 4:7, Alpha
-% 8:12, Low alpha 8:10, High alpha 10:12, Beta 13:30).
+% cond_names (string): names of conditions used in analysis, in order
+% corresponding to cell array of coherence data
 
-% avg_deg is an integer - the desired average degree of the graph resulting
+% freq (vector) - specifies frequency band of interest. (Used in this analysis: Delta 2:4, Theta 5:8, Alpha
+% 9:13, Low alpha 9:11, High alpha 11:13, Beta 14:31).
+
+% avg_deg (int) - the desired average degree of the graph resulting
 % from the adjacency matrix.
 
-% threshold is a vector of thresholds to test that will result in the
-% desired average degree.
-
-% save_name is a string vector of the desired name to save the results.
+% save_name (char) - desired name to save the results.
 
 % Outputs
 
-% Alpha is a 1 x 1 structure with 5 fields - SWP, clustering, path length,
+% results is a 1 x 1 structure with 5 fields - SWP, net clustering, net path length,
 % average degree, and threshold. Each field contains a (number of files
 % x 4 [name of file and 3 conditions]) cell array of results. 
 
@@ -44,32 +44,23 @@ function SWP_results = SWP_results(coh_array, num_cond, freq, avg_deg, threshold
 
 coh_psd = coh_array;
 
-% variables
-T = threshold;
-
 % initialize cell array for SWP and avg degree 
-SWP = cell(length(coh_psd)+ 1 , 4);
-avgdeg = cell(length(coh_psd)+ 1 , 4);
-clust = cell(length(coh_psd) + 1, 4);
-path = cell(length(coh_psd) + 1, 4);
-threshold= cell(length(coh_psd) + 1 , 4);
+SWP = cell(length(coh_psd)+ 1 , num_cond + 1);
+avgdeg = cell(length(coh_psd)+ 1 , num_cond + 1);
+clust = cell(length(coh_psd) + 1, num_cond + 1);
+path = cell(length(coh_psd) + 1, num_cond + 1);
+threshold = cell(length(coh_psd) + 1 , num_cond + 1);
 
-% add names of conditions and names of files to arrays
-SWP{1, 2} = "resting";
-SWP{1, 3} = "music";
-SWP{1, 4} = "faces";
-avgdeg{1, 2} = "resting";
-avgdeg{1, 3} = "music";
-avgdeg{1, 4} = "faces";
-clust{1, 2} = "resting";
-clust{1, 3} = "music";
-clust{1, 4} = "faces";
-path{1, 2} = "resting";
-path{1, 3} = "music";
-path{1, 4} = "faces";
-threshold{1, 2} = "resting";
-threshold{1, 3} = "music";
-threshold{1, 4} = "faces";
+% input names of conditions
+for i = 1:length(cond_names)
+    SWP{1, i + 1} = cond_names(i);
+    avgdeg{1, i + 1} = cond_names(i);
+    clust{1, i + 1} = cond_names(i);
+    path{1, i + 1} = cond_names(i);
+    threshold{1, i + 1} = cond_names(i);
+end
+
+% input names of files 
 SWP(2:size(SWP, 1), 1) = coh_psd(:, 1);
 avgdeg(2:size(SWP, 1), 1) = coh_psd(:, 1);
 clust(2:size(SWP, 1), 1) = coh_psd(:, 1);
@@ -80,20 +71,13 @@ threshold(2:size(SWP, 1), 1) = coh_psd(:, 1);
 for i = 1:length(coh_psd)
     file_data = coh_psd{i, 2};
     for j = 1:num_cond
-        for k = 1:length(T)
-            A = coh_matrix(file_data{j, 2}, freq, T(k));
-            avg_deg_coh = round(mean(degree(graph(A))));
-            if avg_deg_coh == avg_deg
-               threshold = T(k);
-               break
-            end
-        end
-            avgdeg{i + 1, j + 1} = avg_deg;
-            threshold{i + 1, j + 1} = threshold;
-            [SWP, net_clust, net_path] = small_world_propensity(A, 'bin');
-            SWP{i + 1, j + 1} = SWP;
-            clust{i + 1, j + 1} = net_clust;
-            path{i + 1, j+ 1} = net_path;
+        [A, threshold_value] = coh_matrix(file_data{j, 2}, freq, avg_deg);
+        avgdeg{i + 1, j + 1} = avg_deg;
+        threshold{i + 1, j + 1} = threshold_value;
+        [swp, net_clust, net_path] = small_world_propensity(A, 'bin');
+        SWP{i + 1, j + 1} = swp;
+        clust{i + 1, j + 1} = net_clust;
+        path{i + 1, j + 1} = net_path;
     end
 end
 
@@ -104,10 +88,10 @@ path = {path};
 avgdeg = {avgdeg};
 threshold = {threshold};
 
-SWP_results = struct('SWP', SWP, 'Clustering', clust, 'Path_Length', path, 'Average_Degree', avgdeg, 'Threshold', threshold);
+results = struct('SWP', SWP, 'Clustering', clust, 'Path_Length', path, 'Average_Degree', avgdeg, 'Threshold', threshold);
 
 % save the structure 
-save_name = [save_name '.mat'];
-save(save_name, 'SWP_results', '-v7.3');
+save_name = [save_name '_' date '.mat'];
+save(save_name, 'results', '-v7.3');
 
 end
