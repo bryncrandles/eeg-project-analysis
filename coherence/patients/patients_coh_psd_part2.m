@@ -17,11 +17,10 @@ coh_psd_2 = cell(length(datafiles), 2);
 name = {datafiles.name}';
 coh_psd_2(:, 1) = name(1:length(datafiles));
 
-% start timer
-tic
+% use window function in coherence estimates
+window = 1;
 
-% loop to calculate coh, psd for level 300 data files for resting, music
-% and faces conditions 
+% loop to calculate coh, psd for level 310 patients 
 for i = 1:length(datafiles)
     filename = datafiles(i).name;
     fullfilename = fullfile(datafiles(i).folder, filename);
@@ -29,11 +28,12 @@ for i = 1:length(datafiles)
     EEG = pop_loadset(fullfilename);
     all_cond = ext_all_cond(EEG);
     srate = EEG.srate;
+    overlap = srate / 2;
     coherence = cell(3, 1);
     powerspd = cell(3, 1);
        for j = 1:3
-           coherence{j} = coh(all_cond{j, 2}, srate, all_cond{j, 3}); 
-           powerspd{j} = PSD(all_cond{j, 2}, srate, all_cond{j, 3});
+           coherence{j} = coh(all_cond{j, 2}, srate, all_cond{j, 3}, overlap, window); 
+           powerspd{j} = PSD(all_cond{j, 2}, srate, all_cond{j, 3}, overlap, window);
        end
        file_coh_psd = cell(3, 3);
        file_coh_psd(:, 1) = all_cond(1:3, 1);
@@ -42,8 +42,6 @@ for i = 1:length(datafiles)
        coh_psd_2{i, 2} = file_coh_psd;
 end
 
-toc
-
-save('coh_psd_2.mat', 'coh_psd_2', '-v7.3')
+save(['patients_coh_psd_2_' date '.mat'], 'coh_psd_2', '-v7.3')
 
 exit
